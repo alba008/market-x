@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pid
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+venv/
+kira-bend/venv/
+kira-bend/**/__pycache__/
+
+# Django media (optional: keep if you want product images in repo)
+# If you have real uploads, better to NOT commit them:
+kira-bend/media/
+
+# Node
+node_modules/
+kira-frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite / React
+kira-frontend/dist/
+kira-frontend/.vite/
+.DS_Store
