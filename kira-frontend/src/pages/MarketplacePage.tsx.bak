@@ -99,7 +99,7 @@ export default function MarketplacePage() {
 
   const total = data?.listingsPage?.totalCount ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / limit));
-  const items: Listing[] = data?.listingsPage?.results ?? [];
+  consts: Listing[] = data?.listingsPage?.results ?? [];
 
   async function onToggleFavorite(listingId: string) {
     if (!isAuthed) {
@@ -331,11 +331,11 @@ export default function MarketplacePage() {
 
         {/* GRID */}
         <Grid container spacing={2}>
-          {(fetching ? Array.from({ length: 12 }) : items).map((it: any, idx: number) => (
+          {(fetching ? Array.from({ length: 12 }) :s).map((it: any, idx: number) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={it?.id ?? idx}>
               {it ? (
                 <CarCard
-                  item={it}
+                 ={it}
                   onOpen={() => nav(`/listing/${it.id}`)}
                   onToggleFav={() => onToggleFavorite(it.id)}
                 />

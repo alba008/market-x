@@ -1,7 +1,25 @@
+// src/pages/MarketplaceV2.tsx
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation } from "urql";
-import { Alert, Box, Button, Card, CardContent, Chip, Container, Divider, InputAdornment, Pagination, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
-// ✅ MUI v7 Grid2 (supports `size={{ xs, md }}`; does NOT use `item/xs/md`)
+import { useMutation, useQuery } from "urql";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Divider,
+  InputAdornment,
+  Pagination,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
+
+// ✅ MUI v7 Grid (Grid v2 API): use `size={{ xs, md }}` — no `item/xs/md`
 import Grid from "@mui/material/Grid";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -52,6 +70,60 @@ const TOGGLE_FAV_V2 = `
 mutation ToggleFavV2($id: ID!) { toggleFavoriteV2(listingId: $id) }
 `;
 
+/** ---------- types ---------- */
+
+type Category = { id: string; name: string; slug: string };
+
+type ListingImage = {
+  id?: string;
+  thumbnailUrl?: string | null;
+  imageUrl?: string | null;
+  isCover?: boolean | null;
+  sortOrder?: number | null;
+};
+
+type Dealer = {
+  id?: string;
+  dealershipName?: string | null;
+  city?: string | null;
+  region?: string | null;
+  isVerified?: boolean | null;
+};
+
+type AttributeValue = {
+  attribute?: { key?: string | null; label?: string | null } | null;
+  value?: unknown;
+};
+
+type ListingV2 = {
+  id: string;
+  title?: string | null;
+  slug?: string | null;
+  price?: number | string | null;
+  currency?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+  isFeatured?: boolean | null;
+  isFavorited?: boolean | null;
+  createdAt?: string | null;
+  category?: { id?: string; name?: string | null; slug?: string | null } | null;
+  dealer?: Dealer | null;
+  images?: ListingImage[] | null;
+  attributeValues?: AttributeValue[] | null;
+};
+
+type ListingsPageV2Response = {
+  listingsPageV2?: {
+    totalCount?: number;
+    results?: ListingV2[];
+  };
+};
+
+type CategoriesResponse = {
+  categories?: Category[];
+};
+
 /** ---------- helpers ---------- */
 
 function clampInt(v: string, min?: number, max?: number) {
@@ -63,7 +135,7 @@ function clampInt(v: string, min?: number, max?: number) {
   return String(x);
 }
 
-function money(n: any, currency = "USD") {
+function money(n: unknown, currency = "USD") {
   if (n == null) return "—";
   const val = Number(n);
   if (!Number.isFinite(val)) return String(n);
@@ -100,16 +172,14 @@ function resolveMediaUrl(raw?: string | null) {
   return url;
 }
 
-
-function pickCoverImage(images: any[] | undefined | null) {
+function pickCoverImage(images?: ListingImage[] | null) {
   const imgs = images || [];
   const cover =
-    imgs.find((im) => im?.isCover && (im?.thumbnailUrl || im?.imageUrl)) ||
+    imgs.find((im) => Boolean(im?.isCover) && (im?.thumbnailUrl || im?.imageUrl)) ||
     imgs.find((im) => im?.thumbnailUrl || im?.imageUrl) ||
     imgs[0];
 
-  const src = resolveMediaUrl(cover?.thumbnailUrl || cover?.imageUrl || "");
-  return src;
+  return resolveMediaUrl(cover?.thumbnailUrl || cover?.imageUrl || "");
 }
 
 /** ---------- card ---------- */
@@ -119,12 +189,13 @@ function ListingV2Card({
   onOpen,
   onToggleFav,
 }: {
-  item: any;
+  item: ListingV2;
   onOpen: () => void;
   onToggleFav: () => void;
 }) {
   const img = pickCoverImage(item?.images);
   const title = item?.title || "Listing";
+
   const subtitle = `${item?.category?.name || "Category"} • ${item?.city || "—"}${
     item?.region ? `, ${item.region}` : ""
   }`;
@@ -144,7 +215,7 @@ function ListingV2Card({
         },
       }}
     >
-      <Box onClick={onOpen} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
+      <Box onClick={onOpen} role="button" tabIndex={0} sx={{ cursor: "pointer" }}>
         <Box
           sx={{
             height: 190,
@@ -240,17 +311,20 @@ function ListingV2Card({
           </Stack>
 
           <Typography color="text.secondary" sx={{ fontSize: 13 }}>
-            {item?.dealer?.dealershipName || "Dealer"} {item?.dealer?.isVerified ? "• Verified" : ""}
+            {item?.dealer?.dealershipName || "Dealer"}
+            {item?.dealer?.isVerified ? " • Verified" : ""}
           </Typography>
 
           {(item?.attributeValues || []).length > 0 && (
             <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }} useFlexGap>
-              {(item.attributeValues as any[]).slice(0, 3).map((av, idx) => (
+              {(item.attributeValues || []).slice(0, 3).map((av, idx) => (
                 <Chip
                   key={`${item.id}-av-${idx}`}
                   size="small"
                   variant="outlined"
-                  label={`${av?.attribute?.label || av?.attribute?.key}: ${String(av?.value ?? "—")}`}
+                  label={`${av?.attribute?.label || av?.attribute?.key || "Attr"}: ${String(
+                    av?.value ?? "—"
+                  )}`}
                 />
               ))}
             </Stack>
@@ -297,7 +371,7 @@ export default function MarketplaceV2Page() {
   }, [q, featuredOnly, categorySlug, priceMin, priceMax]);
 
   const filters = useMemo(() => {
-    const f: any = {};
+    const f: Record<string, any> = {};
     if (q) f.q = q;
     if (featuredOnly) f.featuredOnly = true;
     if (categorySlug) f.categorySlug = categorySlug;
@@ -308,14 +382,14 @@ export default function MarketplaceV2Page() {
     return f;
   }, [q, featuredOnly, categorySlug, priceMin, priceMax]);
 
-  const [{ data: catsData, fetching: catsLoading }] = useQuery({
+  const [{ data: catsData, fetching: catsLoading }] = useQuery<CategoriesResponse>({
     query: CATEGORIES,
     requestPolicy: "cache-and-network",
   });
 
   const categories = catsData?.categories ?? [];
 
-  const [{ data, fetching, error }, reexec] = useQuery({
+  const [{ data, fetching, error }, reexec] = useQuery<ListingsPageV2Response>({
     query: LISTINGS_PAGE_V2,
     variables: { limit, offset, filters },
     requestPolicy: "cache-and-network",
@@ -325,7 +399,7 @@ export default function MarketplaceV2Page() {
 
   const total = data?.listingsPageV2?.totalCount ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / limit));
-  const items: any[] = data?.listingsPageV2?.results ?? [];
+  const items: ListingV2[] = data?.listingsPageV2?.results ?? [];
 
   async function onToggleFavorite(listingId: string) {
     if (!isAuthed) {
@@ -339,10 +413,11 @@ export default function MarketplaceV2Page() {
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string; onClear: () => void }[] = [];
     if (q) chips.push({ key: "q", label: `Search: ${q}`, onClear: () => setQInput("") });
-    if (featuredOnly) chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
+    if (featuredOnly)
+      chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
 
     if (categorySlug) {
-      const name = categories.find((c: any) => c.slug === categorySlug)?.name || categorySlug;
+      const name = categories.find((c) => c.slug === categorySlug)?.name || categorySlug;
       chips.push({ key: "cat", label: `Category: ${name}`, onClear: () => setCategorySlug("") });
     }
 
@@ -436,7 +511,7 @@ export default function MarketplaceV2Page() {
               />
               {catsLoading
                 ? Array.from({ length: 4 }).map((_, i) => <Chip key={i} label="…" variant="outlined" />)
-                : categories.map((c: any) => (
+                : categories.map((c) => (
                     <Chip
                       key={c.slug}
                       label={c.name}
@@ -469,9 +544,8 @@ export default function MarketplaceV2Page() {
                   </Button>
                 </Stack>
 
-                {/* ✅ Grid2: remove item/xs/md, use size={{...}} */}
                 <Grid container spacing={1.5}>
-                  <Grid size={{ xs: 6, md: 3 }}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price min"
@@ -481,7 +555,7 @@ export default function MarketplaceV2Page() {
                     />
                   </Grid>
 
-                  <Grid size={{ xs: 6, md: 3 }}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price max"
@@ -531,12 +605,11 @@ export default function MarketplaceV2Page() {
 
         <Grid container spacing={2}>
           {(fetching ? Array.from({ length: 12 }) : items).map((it: any, idx: number) => (
-            // ✅ Grid2: remove item/xs/sm/md/lg, use size={{...}}
             <Grid key={it?.id ?? idx} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               {it ? (
                 <ListingV2Card
-                  item={it}
-                  onOpen={() => nav(`/m/v2/${it.slug}`)}
+                  item={it as ListingV2}
+                  onOpen={() => nav(`/m/v2/${it.slug ?? it.id}`)}
                   onToggleFav={() => onToggleFavorite(it.id)}
                 />
               ) : (
