@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "urql";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Alert, Box, Card, CardContent, Chip, Container, Divider, IconButton, Skeleton, Stack, Typography } from "@mui/material";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";

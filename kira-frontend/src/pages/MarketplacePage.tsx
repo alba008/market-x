@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "urql";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Alert, Box, Button, Card, CardContent, Chip, Container, Divider, InputAdornment, Pagination, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "urql";
 
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Box, Container, Typography, Stack, Card, CardContent, Skeleton } from "@mui/material";
 const QUERY = `
 query ExploreFeatured {

@@ -1,15 +1,41 @@
-// src/pages/ListingsPage.jsx
-import React, { useMemo, useState } from "react";
+// src/pages/ListingsPage.tsx
+import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "urql";
-import Grid from "@mui/material/Grid2";
-import { Box, Card, CardContent, Typography, Stack, TextField, Button, Chip, Divider, Skeleton, Drawer, IconButton, Slider, FormControlLabel, Switch, Alert, Pagination } from "@mui/material";
+
+import Grid from "@mui/material/Grid";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+  TextField,
+  Button,
+  Chip,
+  Divider,
+  Skeleton,
+  Drawer,
+  IconButton,
+  Slider,
+  FormControlLabel,
+  Switch,
+  Alert,
+  Pagination,
+} from "@mui/material";
+
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
-import { toAbsUrl } from "../lib/media"; // ✅ same helper used on ListingDetailPage :contentReference[oaicite:1]{index=1}
+type ListingImage = {
+  id?: string | number;
+  isCover?: boolean;
+  sortOrder?: number | null;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
+};
 
 const TEXT_MAIN = "rgba(244,246,248,0.96)";
 const TEXT_MID = "rgba(244,246,248,0.72)";
@@ -49,39 +75,52 @@ const LISTINGS_PAGE_QUERY = `
 `;
 
 /* ============================
-   Image helpers (same logic as detail page)
+   Image helpers
 ============================ */
-function safeAbsUrl(url) {
-  if (!url) return "";
+function safeAbsUrl(url: string) {
+  const v = (url || "").trim();
+  if (!v) return "";
+  if (/^https?:\/\//i.test(v)) return v;
+
+  const base =
+    (import.meta.env.VITE_MEDIA_BASE_URL ||
+      import.meta.env.VITE_BACKEND_URL ||
+      "").trim();
+
+  if (!base) return v;
+  return `${base.replace(/\/+$/, "")}/${v.replace(/^\/+/, "")}`;
+}
+
+function sortImages(images: ListingImage[] = []) {
+  return [...images].sort((a, b) => {
+    const aCover = a.isCover ? 1 : 0;
+    const bCover = b.isCover ? 1 : 0;
+    if (aCover !== bCover) return bCover - aCover;
+
+    const ao = typeof a.sortOrder === "number" ? a.sortOrder : 9999;
+    const bo = typeof b.sortOrder === "number" ? b.sortOrder : 9999;
+    if (ao !== bo) return ao - bo;
+
+    return 0;
+  });
+}
+
+function pickCover(images: ListingImage[] = []) {
+  const first = sortImages(images)[0];
+  const raw = (first?.thumbnailUrl || first?.imageUrl || "").trim();
+  return raw ? safeAbsUrl(raw) : "";
+}
+
+function money(n: number, currency = "USD") {
+  const val = Number.isFinite(n) ? n : 0;
   try {
-    return toAbsUrl(url);
-  } catch {
-    return url;
-  }
-}
-
-function sortImages(images) {
-  const arr = Array.isArray(images) ? images : [];
-  return [...arr].sort((a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0));
-}
-
-function pickCover(images) {
-  const sorted = sortImages(images);
-  const cover = sorted.find((x) => x?.isCover) || sorted[0];
-  const raw = cover?.imageUrl || cover?.thumbnailUrl || "";
-  return safeAbsUrl(raw);
-}
-
-function money(n, currency = "USD") {
-  if (n == null || n === "") return "—";
-  try {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency,
       maximumFractionDigits: 0,
-    }).format(Number(n));
+    }).format(val);
   } catch {
-    return String(n);
+    return `${val.toLocaleString()} ${currency}`;
   }
 }
 
@@ -106,12 +145,17 @@ export default function ListingsPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  function updateParams(next) {
+  function updateParams(
+    next: Record<string, string | number | boolean | null | undefined>
+  ) {
     const nextSp = new URLSearchParams(sp);
+
     Object.entries(next).forEach(([k, v]) => {
-      if (v === null || v === undefined || v === "" || Number.isNaN(v)) nextSp.delete(k);
+      const isBadNumber = typeof v === "number" && Number.isNaN(v);
+      if (v === null || v === undefined || v === "" || isBadNumber) nextSp.delete(k);
       else nextSp.set(k, String(v));
     });
+
     setSp(nextSp, { replace: true });
   }
 
@@ -149,19 +193,21 @@ export default function ListingsPage() {
     requestPolicy: "cache-and-network",
   });
 
-  const pageData = data?.listingsPage;
-  const results = pageData?.results ?? [];
+  const pageData = (data as any)?.listingsPage;
+  const results: any[] = pageData?.results ?? [];
   const total = pageData?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const activeChips = useMemo(() => {
-    const chips = [];
+    const chips: Array<{ k: string; label: string }> = [];
     if (q) chips.push({ k: "q", label: `Search: ${q}` });
     if (region) chips.push({ k: "region", label: `Region: ${region}` });
     if (city) chips.push({ k: "city", label: `City: ${city}` });
     if (featuredOnly) chips.push({ k: "featuredOnly", label: "Featured" });
-    if (yearMin !== 2000 || yearMax !== 2026) chips.push({ k: "year", label: `Year: ${yearMin}–${yearMax}` });
-    if (priceMin !== 0 || priceMax !== 200000) chips.push({ k: "price", label: `Price: ${money(priceMin)}–${money(priceMax)}` });
+    if (yearMin !== 2000 || yearMax !== 2026)
+      chips.push({ k: "year", label: `Year: ${yearMin}–${yearMax}` });
+    if (priceMin !== 0 || priceMax !== 200000)
+      chips.push({ k: "price", label: `Price: ${money(priceMin)}–${money(priceMax)}` });
     return chips;
   }, [q, region, city, featuredOnly, yearMin, yearMax, priceMin, priceMax]);
 
@@ -169,21 +215,38 @@ export default function ListingsPage() {
     <Stack spacing={2} sx={{ p: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography sx={{ color: TEXT_MAIN, fontWeight: 900 }}>Filters</Typography>
-        <Button size="small" onClick={resetFilters} sx={{ color: TEXT_MID, textTransform: "none", fontWeight: 800 }}>
+        <Button
+          size="small"
+          onClick={resetFilters}
+          sx={{ color: TEXT_MID, textTransform: "none", fontWeight: 800 }}
+        >
           Reset
         </Button>
       </Stack>
 
       <Divider sx={{ borderColor: BORDER }} />
 
-      <TextField label="Region" value={region} onChange={(e) => updateParams({ region: e.target.value, page: 1 })} fullWidth />
-      <TextField label="City" value={city} onChange={(e) => updateParams({ city: e.target.value, page: 1 })} fullWidth />
+      <TextField
+        label="Region"
+        value={region}
+        onChange={(e) => updateParams({ region: e.target.value, page: 1 })}
+        fullWidth
+      />
+      <TextField
+        label="City"
+        value={city}
+        onChange={(e) => updateParams({ city: e.target.value, page: 1 })}
+        fullWidth
+      />
 
       <Box>
         <Typography sx={{ color: TEXT_MAIN, fontWeight: 800, mb: 1 }}>Year</Typography>
         <Slider
           value={[yearMin, yearMax]}
-          onChange={(_, v) => updateParams({ yearMin: v[0], yearMax: v[1], page: 1 })}
+          onChange={(_, v) => {
+            const vv = v as number[];
+            updateParams({ yearMin: vv[0], yearMax: vv[1], page: 1 });
+          }}
           min={1990}
           max={2026}
           step={1}
@@ -195,7 +258,10 @@ export default function ListingsPage() {
         <Typography sx={{ color: TEXT_MAIN, fontWeight: 800, mb: 1 }}>Price</Typography>
         <Slider
           value={[priceMin, priceMax]}
-          onChange={(_, v) => updateParams({ priceMin: v[0], priceMax: v[1], page: 1 })}
+          onChange={(_, v) => {
+            const vv = v as number[];
+            updateParams({ priceMin: vv[0], priceMax: vv[1], page: 1 });
+          }}
           min={0}
           max={200000}
           step={1000}
@@ -204,7 +270,14 @@ export default function ListingsPage() {
       </Box>
 
       <FormControlLabel
-        control={<Switch checked={featuredOnly} onChange={(e) => updateParams({ featuredOnly: e.target.checked ? 1 : 0, page: 1 })} />}
+        control={
+          <Switch
+            checked={featuredOnly}
+            onChange={(e) =>
+              updateParams({ featuredOnly: e.target.checked ? 1 : 0, page: 1 })
+            }
+          />
+        }
         label={<Typography sx={{ color: TEXT_MID, fontWeight: 700 }}>Featured only</Typography>}
       />
     </Stack>
@@ -269,7 +342,11 @@ export default function ListingsPage() {
                     }}
                   />
                 ))}
-                <Button onClick={resetFilters} size="small" sx={{ textTransform: "none", fontWeight: 900, color: GOLD }}>
+                <Button
+                  onClick={resetFilters}
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: 900, color: GOLD }}
+                >
                   Clear all
                 </Button>
               </Stack>
@@ -298,7 +375,7 @@ export default function ListingsPage() {
         <Box sx={{ flex: 1 }}>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {error.message}
+              {(error as any).message}
             </Alert>
           )}
 
@@ -307,11 +384,16 @@ export default function ListingsPage() {
           </Typography>
 
           <Grid container spacing={2}>
-            {(fetching ? Array.from({ length: 8 }) : results).map((it, idx) => {
-              const cover = fetching ? "" : pickCover(it?.images);
-              const title = it?.title || `${it?.year ?? ""} ${it?.make ?? ""} ${it?.model ?? ""}`.trim() || "Listing";
+            {(fetching ? Array.from({ length: 8 }) : results).map((it: any, idx: number) => {
+              const images: ListingImage[] = fetching ? [] : (it?.images ?? []);
+              const cover = fetching ? "" : pickCover(images);
+              const title =
+                it?.title ||
+                `${it?.year ?? ""} ${it?.make ?? ""} ${it?.model ?? ""}`.trim() ||
+                "Listing";
 
               return (
+                // ✅ MUI v7 Grid API: use `size={{...}}` (no `item`, no `xs/sm/lg` props)
                 <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={fetching ? idx : it.id}>
                   <Card
                     sx={{
@@ -354,16 +436,14 @@ export default function ListingsPage() {
                         </>
                       ) : (
                         <Stack spacing={0.6}>
-                          <Typography sx={{ color: TEXT_MAIN, fontWeight: 1000 }}>
-                            {title}
-                          </Typography>
+                          <Typography sx={{ color: TEXT_MAIN, fontWeight: 1000 }}>{title}</Typography>
 
                           <Typography sx={{ color: GOLD, fontWeight: 1000 }}>
-                            {money(it.price, it.currency || "USD")}
+                            {money(Number(it.price ?? 0), it.currency || "USD")}
                           </Typography>
 
                           <Typography variant="body2" sx={{ color: TEXT_MID }}>
-                            {(it.city || it.region) ? `${it.city ? it.city + ", " : ""}${it.region || ""}` : "—"}
+                            {it.city || it.region ? `${it.city ? it.city + ", " : ""}${it.region || ""}` : "—"}
                           </Typography>
 
                           <Stack direction="row" justifyContent="space-between" alignItems="center" mt={0.5}>

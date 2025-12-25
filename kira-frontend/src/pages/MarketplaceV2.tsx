@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "urql";
 import { Alert, Box, Button, Card, CardContent, Chip, Container, Divider, InputAdornment, Pagination, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 // ✅ MUI v7 Grid2 (supports `size={{ xs, md }}`; does NOT use `item/xs/md`)
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
@@ -81,32 +81,25 @@ function money(n: any, currency = "USD") {
 function resolveMediaUrl(raw?: string | null) {
   const url = (raw || "").trim();
   if (!url) return "";
-
-  // already absolute
   if (/^https?:\/\//i.test(url)) return url;
 
-  // Prefer explicit env vars if you have them
-  const explicitBase =
-    (import.meta as any).env?.VITE_MEDIA_BASE_URL ||
-    (import.meta as any).env?.VITE_BACKEND_URL ||
-    "";
+  const base =
+    (import.meta.env.VITE_MEDIA_BASE_URL ||
+      import.meta.env.VITE_BACKEND_URL ||
+      "").trim();
 
-  if (explicitBase) {
-    return `${String(explicitBase).replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
-  }
+  if (base) return `${base.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
 
-  // Otherwise derive from GraphQL URL (common: http://localhost:8000/graphql/)
-  const gql = String((import.meta as any).env?.VITE_GRAPHQL_URL || "").trim();
+  const gql = (import.meta.env.VITE_GRAPHQL_URL || "").trim();
   if (gql) {
-    const base = gql.replace(/\/graphql\/?$/i, "");
-    if (base && /^https?:\/\//i.test(base)) {
-      return `${base.replace(/\/+$/, "")}/${url.replace(/^\/+$/, "")}`.replace(/\/+$/, "") + `/${url.replace(/^\/+/, "")}`;
+    const derived = gql.replace(/\/graphql\/?$/i, "");
+    if (/^https?:\/\//i.test(derived)) {
+      return `${derived.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
     }
   }
-
-  // fallback: return raw
   return url;
 }
+
 
 function pickCoverImage(images: any[] | undefined | null) {
   const imgs = images || [];
