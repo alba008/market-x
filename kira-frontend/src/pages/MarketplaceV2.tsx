@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "urql";
 import {
   Alert,
@@ -17,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 
-// ✅ IMPORTANT FIX: use classic Grid (supports item/xs/md/lg props)
+// ✅ MUI v7 Grid2 (supports `size={{ xs, md }}`; does NOT use `item/xs/md`)
 import Grid from "@mui/material/Grid";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -116,7 +117,7 @@ function resolveMediaUrl(raw?: string | null) {
   if (gql) {
     const base = gql.replace(/\/graphql\/?$/i, "");
     if (base && /^https?:\/\//i.test(base)) {
-      return `${base.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
+      return `${base.replace(/\/+$/, "")}/${url.replace(/^\/+$/, "")}`.replace(/\/+$/, "") + `/${url.replace(/^\/+/, "")}`;
     }
   }
 
@@ -183,8 +184,7 @@ function ListingV2Card({
             sx={{
               position: "absolute",
               inset: 0,
-              background:
-                "linear-gradient(180deg, rgba(0,0,0,0.00) 35%, rgba(0,0,0,0.55) 100%)",
+              background: "linear-gradient(180deg, rgba(0,0,0,0.00) 35%, rgba(0,0,0,0.55) 100%)",
             }}
           />
 
@@ -264,8 +264,7 @@ function ListingV2Card({
           </Stack>
 
           <Typography color="text.secondary" sx={{ fontSize: 13 }}>
-            {item?.dealer?.dealershipName || "Dealer"}{" "}
-            {item?.dealer?.isVerified ? "• Verified" : ""}
+            {item?.dealer?.dealershipName || "Dealer"} {item?.dealer?.isVerified ? "• Verified" : ""}
           </Typography>
 
           {(item?.attributeValues || []).length > 0 && (
@@ -364,8 +363,7 @@ export default function MarketplaceV2Page() {
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string; onClear: () => void }[] = [];
     if (q) chips.push({ key: "q", label: `Search: ${q}`, onClear: () => setQInput("") });
-    if (featuredOnly)
-      chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
+    if (featuredOnly) chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
 
     if (categorySlug) {
       const name = categories.find((c: any) => c.slug === categorySlug)?.name || categorySlug;
@@ -495,8 +493,9 @@ export default function MarketplaceV2Page() {
                   </Button>
                 </Stack>
 
+                {/* ✅ Grid2: remove item/xs/md, use size={{...}} */}
                 <Grid container spacing={1.5}>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price min"
@@ -506,7 +505,7 @@ export default function MarketplaceV2Page() {
                     />
                   </Grid>
 
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price max"
@@ -516,7 +515,7 @@ export default function MarketplaceV2Page() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box
                       sx={{
                         height: "100%",
@@ -556,7 +555,8 @@ export default function MarketplaceV2Page() {
 
         <Grid container spacing={2}>
           {(fetching ? Array.from({ length: 12 }) : items).map((it: any, idx: number) => (
-            <Grid key={it?.id ?? idx} item xs={12} sm={6} md={4} lg={3}>
+            // ✅ Grid2: remove item/xs/sm/md/lg, use size={{...}}
+            <Grid key={it?.id ?? idx} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               {it ? (
                 <ListingV2Card
                   item={it}
@@ -578,13 +578,7 @@ export default function MarketplaceV2Page() {
         </Grid>
 
         <Stack alignItems="center" sx={{ mt: 4 }}>
-          <Pagination
-            count={pageCount}
-            page={page}
-            onChange={(_, p) => setPage(p)}
-            color="primary"
-            shape="rounded"
-          />
+          <Pagination count={pageCount} page={page} onChange={(_, p) => setPage(p)} color="primary" shape="rounded" />
         </Stack>
       </Container>
     </>
