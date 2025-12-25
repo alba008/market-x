@@ -9,7 +9,6 @@ import {
   Chip,
   Container,
   Divider,
-  Grid,
   InputAdornment,
   Pagination,
   Stack,
@@ -18,6 +17,10 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+
+// ✅ IMPORTANT FIX: use classic Grid (supports item/xs/md/lg props)
+import Grid from "@mui/material/Grid";
+
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
@@ -165,12 +168,7 @@ function ListingV2Card({
         },
       }}
     >
-      <Box
-        onClick={onOpen}
-        role="button"
-        tabIndex={0}
-        style={{ cursor: "pointer" }}
-      >
+      <Box onClick={onOpen} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
         <Box
           sx={{
             height: 190,
@@ -190,6 +188,7 @@ function ListingV2Card({
                 "linear-gradient(180deg, rgba(0,0,0,0.00) 35%, rgba(0,0,0,0.55) 100%)",
             }}
           />
+
           <Stack
             direction="row"
             spacing={1}
@@ -209,6 +208,7 @@ function ListingV2Card({
                 }}
               />
             ) : null}
+
             <Chip
               size="small"
               label={item?.category?.name || "—"}
@@ -269,7 +269,6 @@ function ListingV2Card({
             {item?.dealer?.isVerified ? "• Verified" : ""}
           </Typography>
 
-          {/* Quick attribute chips (optional) */}
           {(item?.attributeValues || []).length > 0 && (
             <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }} useFlexGap>
               {(item.attributeValues as any[]).slice(0, 3).map((av, idx) => (
@@ -299,15 +298,14 @@ export default function MarketplaceV2Page() {
   const limit = 12;
   const offset = (page - 1) * limit;
 
-  // filters (UI) — copied style/flow from Cars page
+  // filters (UI)
   const [qInput, setQInput] = useState("");
   const [q, setQ] = useState(""); // debounced
   const [featuredOnly, setFeaturedOnly] = useState(false);
 
-  // V2: category filter
+  // category filter
   const [categorySlug, setCategorySlug] = useState<string>("");
 
-  // Optional universal filters (keep simple for now; add attribute filters next)
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
 
@@ -336,7 +334,6 @@ export default function MarketplaceV2Page() {
     return f;
   }, [q, featuredOnly, categorySlug, priceMin, priceMax]);
 
-  // categories for chip bar
   const [{ data: catsData, fetching: catsLoading }] = useQuery({
     query: CATEGORIES,
     requestPolicy: "cache-and-network",
@@ -368,13 +365,17 @@ export default function MarketplaceV2Page() {
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string; onClear: () => void }[] = [];
     if (q) chips.push({ key: "q", label: `Search: ${q}`, onClear: () => setQInput("") });
-    if (featuredOnly) chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
+    if (featuredOnly)
+      chips.push({ key: "feat", label: "Featured only", onClear: () => setFeaturedOnly(false) });
+
     if (categorySlug) {
       const name = categories.find((c: any) => c.slug === categorySlug)?.name || categorySlug;
       chips.push({ key: "cat", label: `Category: ${name}`, onClear: () => setCategorySlug("") });
     }
+
     if (priceMin) chips.push({ key: "pmin", label: `Price ≥ ${priceMin}`, onClear: () => setPriceMin("") });
     if (priceMax) chips.push({ key: "pmax", label: `Price ≤ ${priceMax}`, onClear: () => setPriceMax("") });
+
     return chips;
   }, [q, featuredOnly, categorySlug, priceMin, priceMax, categories]);
 
@@ -388,11 +389,9 @@ export default function MarketplaceV2Page() {
 
   return (
     <>
-      {/* Reuse the same hero component (like Cars) */}
       <MarketplaceHero />
 
       <Container sx={{ py: { xs: 3, md: 4 } }}>
-        {/* HEADER (same layout vibe as Cars) */}
         <Box
           sx={{
             mb: 2.5,
@@ -455,7 +454,6 @@ export default function MarketplaceV2Page() {
               </Stack>
             </Stack>
 
-            {/* Category chips row */}
             <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }} useFlexGap>
               <Chip
                 label="All categories"
@@ -464,9 +462,7 @@ export default function MarketplaceV2Page() {
                 color={categorySlug ? "default" : "primary"}
               />
               {catsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <Chip key={i} label="…" variant="outlined" />
-                  ))
+                ? Array.from({ length: 4 }).map((_, i) => <Chip key={i} label="…" variant="outlined" />)
                 : categories.map((c: any) => (
                     <Chip
                       key={c.slug}
@@ -478,7 +474,6 @@ export default function MarketplaceV2Page() {
                   ))}
             </Stack>
 
-            {/* active chips */}
             {activeChips.length > 0 && (
               <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }} useFlexGap>
                 {activeChips.map((c) => (
@@ -490,7 +485,6 @@ export default function MarketplaceV2Page() {
           </Stack>
         </Box>
 
-        {/* FILTERS PANEL (like Cars, simplified for universal) */}
         {showFilters && (
           <Card sx={{ mb: 2.25 }}>
             <CardContent>
@@ -512,6 +506,7 @@ export default function MarketplaceV2Page() {
                       placeholder="5000"
                     />
                   </Grid>
+
                   <Grid item xs={6} md={3}>
                     <TextField
                       fullWidth
@@ -560,7 +555,6 @@ export default function MarketplaceV2Page() {
 
         {error && <Alert severity="error">{error.message}</Alert>}
 
-        {/* GRID */}
         <Grid container spacing={2}>
           {(fetching ? Array.from({ length: 12 }) : items).map((it: any, idx: number) => (
             <Grid key={it?.id ?? idx} item xs={12} sm={6} md={4} lg={3}>
@@ -584,7 +578,6 @@ export default function MarketplaceV2Page() {
           ))}
         </Grid>
 
-        {/* PAGINATION (same as Cars) */}
         <Stack alignItems="center" sx={{ mt: 4 }}>
           <Pagination
             count={pageCount}

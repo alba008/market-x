@@ -2,7 +2,6 @@ import { Box, Container, Typography } from "@mui/material";
 import { Routes, Route } from "react-router-dom";
 import AppHeader from "./components/AppHeader";
 
-import MarketplacePage from "./pages/MarketplacePage";
 import ListingDetailPage from "./pages/ListingDetailPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";

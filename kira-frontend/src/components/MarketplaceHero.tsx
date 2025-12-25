@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "urql";
 import {
   Box,
@@ -81,6 +81,7 @@ function pickCoverImage(images: any[] | undefined | null) {
     imgs.find((im) => im?.isCover && (im?.thumbnailUrl || im?.imageUrl)) ||
     imgs.find((im) => im?.thumbnailUrl || im?.imageUrl) ||
     imgs[0];
+
   return resolveMediaUrl(cover?.thumbnailUrl || cover?.imageUrl || "");
 }
 
@@ -95,20 +96,29 @@ export default function MarketplaceHero() {
     []
   );
 
-  // ✅ IMPORTANT: always get fresh data so admin changes reflect
-  const [{ data, fetching }] = useQuery({
+  /**
+   * ✅ IMPORTANT CHANGE:
+   * urql useQuery does NOT support pollInterval (in your current types),
+   * so we use a controlled setInterval + reexecuteQuery.
+   */
+  const [{ data, fetching }, reexec] = useQuery({
     query: HERO_FEATURED_V2,
     variables,
     requestPolicy: "network-only",
-    pollInterval: 8000, // refresh every 8s (great for dev/admin edits)
   });
 
   const featured = data?.listingsPageV2?.results ?? [];
 
-  // ✅ reset index safely when the list changes (prevents "weird first item" / stuck)
+  // For stable dependency (avoid re-render loops)
+  const featuredKey = useMemo(
+    () => featured.map((x: any) => x?.id).filter(Boolean).join("|"),
+    [featured]
+  );
+
+  // ✅ reset index safely when list changes
   useEffect(() => {
     setI(0);
-  }, [featured.map((x: any) => x?.id).join("|")]);
+  }, [featuredKey]);
 
   // ✅ rotate only if we have 2+ items
   useEffect(() => {
@@ -118,6 +128,20 @@ export default function MarketplaceHero() {
     }, 4500);
     return () => clearInterval(t);
   }, [featured.length]);
+
+  // ✅ polling: refresh results periodically (admin changes show up)
+  const pollingRef = useRef<number | null>(null);
+  useEffect(() => {
+    // poll every 8s
+    pollingRef.current = window.setInterval(() => {
+      reexec({ requestPolicy: "network-only" });
+    }, 8000);
+
+    return () => {
+      if (pollingRef.current) window.clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    };
+  }, [reexec]);
 
   const active = featured.length ? featured[Math.min(i, featured.length - 1)] : null;
   const heroImg = active ? pickCoverImage(active.images) : "";

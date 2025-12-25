@@ -26,7 +26,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 
 // ✅ If you already have an auth context, plug it here.
-// For now, this is a safe fallback: checks localStorage for a token.
+// For now, safe fallback: checks localStorage for a token.
 function useSimpleAuth() {
   const token =
     typeof window !== "undefined"
@@ -35,7 +35,6 @@ function useSimpleAuth() {
         localStorage.getItem("access")
       : null;
 
-  // If you store user info somewhere, you can read it here too.
   const name =
     typeof window !== "undefined"
       ? localStorage.getItem("userName") || localStorage.getItem("name") || ""
@@ -54,14 +53,15 @@ export default function AppHeader() {
   const { isAuthed, name } = useSimpleAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState(null);
+
+  // ✅ TS FIX: anchor must be HTMLElement | null (not just null)
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
   const links = useMemo(
     () => [
       { label: "Home", to: "/" },
       { label: "Explore", to: "/explore" },
       { label: "Listings", to: "/listings" },
-      // keep Contact if you plan it; otherwise remove
       { label: "Contact", to: "/contact" },
     ],
     []
@@ -69,8 +69,12 @@ export default function AppHeader() {
 
   const displayName = (name || "Account").trim();
 
+  const closeMenus = () => {
+    setMenuAnchor(null);
+    setDrawerOpen(false);
+  };
+
   const handleLogout = () => {
-    // ✅ Use your existing logout function if you already have one.
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("token");
@@ -78,8 +82,7 @@ export default function AppHeader() {
     localStorage.removeItem("userName");
     localStorage.removeItem("name");
 
-    setMenuAnchor(null);
-    setDrawerOpen(false);
+    closeMenus();
     nav("/login");
   };
 
@@ -104,7 +107,6 @@ export default function AppHeader() {
             Sign in
           </Button>
 
-          {/* Sign up exists visually but disabled until route/page exists */}
           <Tooltip title="Sign up page coming soon">
             <span>
               <Button
@@ -157,6 +159,7 @@ export default function AppHeader() {
               >
                 {displayName?.[0]?.toUpperCase() || "U"}
               </Avatar>
+
               <Typography sx={{ color: TEXT, fontWeight: 900 }}>
                 {displayName}
               </Typography>
@@ -276,6 +279,7 @@ export default function AppHeader() {
             >
               {displayName?.[0]?.toUpperCase() || "U"}
             </Avatar>
+
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ color: TEXT, fontWeight: 900, lineHeight: 1.1 }}>
                 {displayName}
@@ -284,6 +288,7 @@ export default function AppHeader() {
                 Account
               </Typography>
             </Box>
+
             <PersonRoundedIcon sx={{ color: DIM }} />
           </Box>
 
@@ -345,7 +350,6 @@ export default function AppHeader() {
             gap: 1,
           }}
         >
-          {/* Brand */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
             <Typography
               component={RouterLink}
@@ -382,7 +386,6 @@ export default function AppHeader() {
             </Typography>
           </Box>
 
-          {/* Desktop nav */}
           <Stack
             direction="row"
             spacing={0.5}
@@ -405,11 +408,9 @@ export default function AppHeader() {
                 {l.label}
               </Button>
             ))}
-
             {AuthAreaDesktop}
           </Stack>
 
-          {/* Mobile menu button */}
           <IconButton
             onClick={() => setDrawerOpen(true)}
             sx={{
@@ -425,7 +426,6 @@ export default function AppHeader() {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
