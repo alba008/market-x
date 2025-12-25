@@ -1,23 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "urql";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Divider,
-  Grid,
-  InputAdornment,
-  Pagination,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
+import Grid from "@mui/material/Grid2";
+import { Alert, Box, Button, Card, CardContent, Chip, Container, Divider, InputAdornment, Pagination, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
@@ -247,7 +231,7 @@ export default function MarketplacePage() {
                 </Stack>
 
                 <Grid container spacing={1.5}>
-                  <Grid item xs={12} md={3}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Make"
@@ -256,7 +240,7 @@ export default function MarketplacePage() {
                       placeholder="Toyota"
                     />
                   </Grid>
-                  <Grid item xs={12} md={3}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Model"
@@ -265,7 +249,7 @@ export default function MarketplacePage() {
                       placeholder="RAV4"
                     />
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Year min"
@@ -274,7 +258,7 @@ export default function MarketplacePage() {
                       placeholder="2015"
                     />
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Year max"
@@ -284,7 +268,7 @@ export default function MarketplacePage() {
                     />
                   </Grid>
 
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price min (USD)"
@@ -293,7 +277,7 @@ export default function MarketplacePage() {
                       placeholder="5000"
                     />
                   </Grid>
-                  <Grid item xs={6} md={3}>
+                  <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                       fullWidth
                       label="Price max (USD)"
@@ -303,7 +287,7 @@ export default function MarketplacePage() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box
                       sx={{
                         height: "100%",
@@ -348,7 +332,7 @@ export default function MarketplacePage() {
         {/* GRID */}
         <Grid container spacing={2}>
           {(fetching ? Array.from({ length: 12 }) : items).map((it: any, idx: number) => (
-            <Grid key={it?.id ?? idx} item xs={12} sm={6} md={4} lg={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={it?.id ?? idx}>
               {it ? (
                 <CarCard
                   item={it}

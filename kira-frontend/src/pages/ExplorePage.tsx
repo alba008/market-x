@@ -1,17 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "urql";
 
-import Grid from "@mui/material/Grid";
-import {
-  Box,
-  Container,
-  Typography,
-  Stack,
-  Card,
-  CardContent,
-  Skeleton,
-} from "@mui/material";
-
+import Grid from "@mui/material/Grid2";
+import { Box, Container, Typography, Stack, Card, CardContent, Skeleton } from "@mui/material";
 const QUERY = `
 query ExploreFeatured {
   featured: listingsFeatured {
@@ -91,13 +82,7 @@ export default function ExplorePage() {
       <Grid container spacing={3}>
         {(fetching ? Array.from({ length: 6 }) : items).map(
           (item, idx: number) => (
-            <Grid
-              item
-              key={fetching ? idx : (item as Listing).id}
-              xs={12}
-              sm={6}
-              md={4}
-            >
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={fetching ? idx : (item as Listing).id}>
               <Card
                 onClick={() =>
                   !fetching &&

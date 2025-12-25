@@ -2,7 +2,7 @@
 /**
  * MUI v7 Grid2 codemod:
  * - Ensure Grid is imported from "@mui/material/Grid2"
- * - Convert <Grid item xs={..} md={..}> into <Grid size={{ xs: .., md: .. }}>
+ * - Convert <Grid size={{ xs: .., md: .. }}> into <Grid size={{ xs: .., md: .. }}>
  * - Remove `item`
  * - Leave <Grid container ...> alone
  *
@@ -51,8 +51,8 @@ function fixImports(src) {
 
   const hasGrid2Default = /import\s+Grid\s+from\s+["']@mui\/material\/Grid2["']\s*;/.test(out);
 
-  // Case A: import Grid from "@mui/material/Grid";
-  out = out.replace(
+  // Case A: import Grid from "@mui/material/Grid2";
+out = out.replace(
     /import\s+Grid\s+from\s+["']@mui\/material\/Grid["']\s*;\s*\n?/g,
     () => (hasGrid2Default ? "" : `import Grid from "@mui/material/Grid2";\n`)
   );
@@ -63,8 +63,8 @@ function fixImports(src) {
     () => (hasGrid2Default ? "" : `import Grid from "@mui/material/Grid2";\n`)
   );
 
-  // Case C: import { ..., Grid, ... } from "@mui/material";
-  // Remove Grid from the named import list
+  // Case C: import { ..., ... } from "@mui/material";
+// Remove Grid from the named import list
   const namedMuiImportRe = /import\s*\{\s*([^}]+)\s*\}\s*from\s*["']@mui\/material["']\s*;\s*\n?/g;
   out = out.replace(namedMuiImportRe, (full, inner) => {
     const parts = inner
@@ -96,7 +96,7 @@ function fixImports(src) {
 
 /**
  * Convert opening tags like:
- * <Grid item xs={12} md={6} ...>
+ * <Grid size={{ xs: 12, md: 6 }} ...>
  * to:
  * <Grid size={{ xs: 12, md: 6 }} ...>
  *

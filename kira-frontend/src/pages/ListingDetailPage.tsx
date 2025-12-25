@@ -2,21 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "urql";
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Divider,
-  Grid,
-  IconButton,
-  Skeleton,
-  Stack,
-  Typography,
-} from "@mui/material";
-
+import Grid from "@mui/material/Grid2";
+import { Alert, Box, Card, CardContent, Chip, Container, Divider, IconButton, Skeleton, Stack, Typography } from "@mui/material";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 
@@ -228,7 +215,7 @@ export default function ListingDetailPage() {
         {/* =======================
             IMAGE GALLERY
         ======================= */}
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Card sx={{ overflow: "hidden" }}>
             <Box sx={{ position: "relative" }}>
               {fetching && !listing ? (
@@ -274,7 +261,7 @@ export default function ListingDetailPage() {
                   (img: any, idx: number) => {
                     if (fetching && !listing) {
                       return (
-                        <Grid item xs={3} sm={2} key={idx}>
+                        <Grid size={{ xs: 3, sm: 2 }} key={idx}>
                           <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1.5 }} />
                         </Grid>
                       );
@@ -284,7 +271,7 @@ export default function ListingDetailPage() {
                     const isActive = activeImage === img.imageUrl;
 
                     return (
-                      <Grid item xs={3} sm={2} key={img.id}>
+                      <Grid size={{ xs: 3, sm: 2 }} key={img.id}>
                         <Box
                           component="img"
                           src={thumb}
@@ -314,7 +301,7 @@ export default function ListingDetailPage() {
         {/* =======================
             DETAILS
         ======================= */}
-        <Grid item xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Stack spacing={2.5}>
             {/* Header */}
             <Box>

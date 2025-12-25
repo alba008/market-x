@@ -1,25 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "urql";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Divider,
-  InputAdornment,
-  Pagination,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
-
+import { Alert, Box, Button, Card, CardContent, Chip, Container, Divider, InputAdornment, Pagination, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 // ✅ MUI v7 Grid2 (supports `size={{ xs, md }}`; does NOT use `item/xs/md`)
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid2";
 
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";

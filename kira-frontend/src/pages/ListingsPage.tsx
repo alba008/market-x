@@ -2,27 +2,8 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "urql";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Stack,
-  TextField,
-  Button,
-  Chip,
-  Divider,
-  Grid,
-  Skeleton,
-  Drawer,
-  IconButton,
-  Slider,
-  FormControlLabel,
-  Switch,
-  Alert,
-  Pagination,
-} from "@mui/material";
-
+import Grid from "@mui/material/Grid2";
+import { Box, Card, CardContent, Typography, Stack, TextField, Button, Chip, Divider, Skeleton, Drawer, IconButton, Slider, FormControlLabel, Switch, Alert, Pagination } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
@@ -331,7 +312,7 @@ export default function ListingsPage() {
               const title = it?.title || `${it?.year ?? ""} ${it?.make ?? ""} ${it?.model ?? ""}`.trim() || "Listing";
 
               return (
-                <Grid key={fetching ? idx : it.id} item xs={12} sm={6} lg={4}>
+                <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={fetching ? idx : it.id}>
                   <Card
                     sx={{
                       bgcolor: CARD_BG,
