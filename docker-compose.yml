@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    container_name: marketx_db
+    environment:
+      POSTGRES_DB: marketx
+      POSTGRES_USER: marketx
+      POSTGRES_PASSWORD: marketx_password
+    volumes:
+      - marketx_pg:/var/lib/postgresql/data
+    networks:
+      - shared
+    restart: unless-stopped
+
+  backend:
+    build: ./kira-bend
+    container_name: marketx_backend
+
+    env_file:
+      - .env
+
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings
+      DATABASE_URL: postgres://marketx:marketx_password@db:5432/marketx
+      ALLOWED_HOSTS: api.makutanoni.com,localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: https://makutanoni.com,https://www.makutanoni.com,https://vite-react-nu-seven-90.vercel.app
+      CSRF_TRUSTED_ORIGINS: https://api.makutanoni.com,https://makutanoni.com,https://www.makutanoni.com
+
+    depends_on:
+      - db
+
+    volumes:
+      - /var/www/marketx_media:/app/media
+      - marketx_static:/app/staticfiles
+
+    ports:
+      - "127.0.0.1:5052:8000"
+
+    networks:
+      - shared
+
+    command: >
+      sh -lc "
+      python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+      "
+
+    restart: unless-stopped
+
+volumes:
+  marketx_pg:
+  marketx_static:
+
+networks:
+  shared:
+    external: true

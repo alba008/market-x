@@ -1,0 +1,11 @@
+Hi {{ first_name|default:"there" }},
+
+Welcome to Makutanoni 🎉
+
+Your account has been created successfully.
+You can now log in and start browsing and saving listings.
+
+Login: {{ login_url }}
+
+Thanks,
+Makutanoni Team

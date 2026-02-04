@@ -1,0 +1,12 @@
+Django>=4.2,<6.0
+djangorestframework>=3.14
+djangorestframework-simplejwt>=5.2
+mysqlclient>=2.2
+django-cors-headers>=4.3
+strawberry-graphql-django>=0.20
+dj-database-url>=2.1
+python-dotenv>=1.0
+gunicorn>=21.2
+Pillow>=10.0
+psycopg[binary]>=3.1
+whitenoise>=6.6
