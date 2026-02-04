@@ -1,0 +1,5 @@
+Hello from PickUp!
+
+This is a test email.
+Name: {{ name }}
+Message: {{ message }}
